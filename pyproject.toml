@@ -1,3 +1,23 @@
 [build-system]
 requires = ["setuptools>=64.0"]
 build-backend = "setuptools.build_meta"
+
+
+name = "irt"
+version = "0.1.0"
+description = ""
+authors = [{ name = "ChemBench authors", email = "chembench@lamalab.org" }]
+dependencies = [
+   "pandas",
+    "numpy",
+    "pymc",
+    "arviz",
+    "pickle",
+    "nbdev",
+    "jupyterlab",
+    "jupyterlab-quarto",
+
+]
+requires-python = ">=3.10"
+readme = "README.md"
+license = { text = "MIT" }
