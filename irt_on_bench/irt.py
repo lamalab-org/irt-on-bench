@@ -9,17 +9,17 @@ __all__ = ['ScoringType', 'QuestionMetadata', 'BinaryQuestionMetadata', 'Benchma
 import numpy as np 
 from girth import twopl_mml, rasch_mml, ability_mle
 
-# %% ../nbs/irt.ipynb 8
+# %% ../nbs/irt.ipynb 13
 from enum import Enum
 from dataclasses import dataclass
 from typing import Dict
 
-# %% ../nbs/irt.ipynb 9
+# %% ../nbs/irt.ipynb 14
 class ScoringType(Enum): 
     BINARY = 'binary'
     PARTIAL = 'partial'
 
-# %% ../nbs/irt.ipynb 11
+# %% ../nbs/irt.ipynb 16
 @dataclass
 class QuestionMetadata:
     """Base class for question metadata"""
@@ -29,8 +29,11 @@ class QuestionMetadata:
     def compute_score(self, response) -> float:
         """Base method for computing scores"""
         raise NotImplementedError
+    
 
-# %% ../nbs/irt.ipynb 12
+
+
+# %% ../nbs/irt.ipynb 17
 @dataclass
 class BinaryQuestionMetadata(QuestionMetadata):
     """Metadata for binary scored questions"""
@@ -41,7 +44,7 @@ class BinaryQuestionMetadata(QuestionMetadata):
         """Use the all_correct column directly"""
         return float(row[column])
 
-# %% ../nbs/irt.ipynb 13
+# %% ../nbs/irt.ipynb 18
 class BenchmarkAnalyzer:
     def __init__(self):
         self.model_dataframes: Dict[str, pd.DataFrame] = {}

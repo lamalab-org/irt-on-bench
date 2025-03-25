@@ -153,3 +153,4 @@ checklink/cookies.txt
 
 
 data/
+/plots/metric_comparison/model_score_dict.pkl
