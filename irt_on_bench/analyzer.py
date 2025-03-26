@@ -5,12 +5,13 @@ This module provides the BenchmarkAnalyzer class for computing score matrices
 and fitting IRT models to language model evaluation data.
 """
 
+from typing import Any
+
 import numpy as np
 import pandas as pd
-from typing import Dict, List, Tuple, Any, Optional
 
-from irt_on_bench.models.metadata import QuestionMetadata
-from irt_on_bench.models.irt_models import (twopl_mml, rasch_mml, ability_mle)
+from irt_on_bench.metadata import QuestionMetadata
+from irt_on_bench.models import ability_mle, rasch_mml, twopl_mml
 
 
 class BenchmarkAnalyzer:
@@ -23,35 +24,32 @@ class BenchmarkAnalyzer:
     - Fitting IRT models
     - Analyzing extreme items
 
-    Attributes
-    ----------
-    model_dataframes : Dict[str, pd.DataFrame]
-        Dictionary mapping model IDs to their results DataFrames
-    question_metadata : Dict[str, QuestionMetadata]
-        Dictionary mapping question IDs to their metadata
-    score_matrix : Optional[np.ndarray]
-        Computed score matrix (None until computed)
-    model_ids : Optional[List[str]]
-        List of model IDs (None until score matrix is computed)
+    Attributes:
+        model_dataframes (dict[str, pd.DataFrame]): dictionary mapping model IDs to their results DataFrames.
+        question_metadata (dict[str, QuestionMetadata]): dictionary mapping question IDs to their metadata.
+        score_matrix (Optional[np.ndarray]): Computed score matrix (None until computed).
+        model_ids (Optional[list[str]]): list of model IDs (None until score matrix is computed).
     """
 
     def __init__(self):
-        """Initialize a new BenchmarkAnalyzer instance."""
-        self.model_dataframes: Dict[str, pd.DataFrame] = {}
-        self.question_metadata: Dict[str, QuestionMetadata] = {}
-        self.score_matrix: Optional[np.ndarray] = None
-        self.model_ids: Optional[List[str]] = None
+        """
+        Initialize a new BenchmarkAnalyzer instance.
+
+        Args:
+            None
+        """
+        self.model_dataframes: dict[str, pd.DataFrame] = {}
+        self.question_metadata: dict[str, QuestionMetadata] = {}
+        self.score_matrix: np.ndarray | None = None
+        self.model_ids: list[str] | None = None
 
     def add_model_results(self, model_id: str, results_df: pd.DataFrame) -> None:
         """
         Add a model's results DataFrame.
 
-        Parameters
-        ----------
-        model_id : str
-            Unique identifier for the model
-        results_df : pd.DataFrame
-            DataFrame containing the model's results
+        Args:
+            model_id (str): Unique identifier for the model.
+            results_df (pd.DataFrame): DataFrame containing the model's results.
         """
         self.model_dataframes[model_id] = results_df
 
@@ -59,10 +57,8 @@ class BenchmarkAnalyzer:
         """
         Add metadata for a question.
 
-        Parameters
-        ----------
-        metadata : QuestionMetadata
-            Metadata object for the question
+        Args:
+            metadata (QuestionMetadata): Metadata object for the question.
         """
         self.question_metadata[metadata.question_id] = metadata
 
@@ -70,15 +66,11 @@ class BenchmarkAnalyzer:
         """
         Compute score matrix using metadata-specific scoring.
 
-        Returns
-        -------
-        np.ndarray
-            Computed score matrix with dimensions [n_models, n_questions]
+        Returns:
+            np.ndarray: Computed score matrix with dimensions [n_models, n_questions].
 
-        Raises
-        ------
-        ValueError
-            If model results or question metadata are missing
+        Raises:
+            ValueError: If model results or question metadata are missing.
         """
         if not self.model_dataframes or not self.question_metadata:
             raise ValueError("Need both model results and question metadata")
@@ -106,29 +98,24 @@ class BenchmarkAnalyzer:
 
         return self.score_matrix
 
-    def fit_irt(self, model: str = '2pl') -> Dict[str, Any]:
+    def fit_irt(self, model: str = '2pl') -> dict[str, Any]:
         """
         Fit an IRT model to the score matrix.
 
-        Parameters
-        ----------
-        model : str, optional
-            IRT model to fit: '2pl' for 2-parameter logistic or 'rasch' for Rasch model
-            (default: '2pl')
+        Args:
+            model (str, optional): IRT model to fit: '2pl' for 2-parameter logistic or 'rasch' for Rasch model
+                                   (default: '2pl').
 
-        Returns
-        -------
-        Dict[str, Any]
-            Dictionary containing:
-            - 'difficulties': Item difficulty parameters
-            - 'discriminations': Item discrimination parameters
-            - 'abilities': Model ability parameters
-            - 'binary_matrix': Binary score matrix used for fitting
+        Returns:
+            dict[str, Any]: dictionary containing:
+                - 'difficulties': Item difficulty parameters.
+                - 'discriminations': Item discrimination parameters.
+                - 'abilities': Model ability parameters.
+                - 'binary_matrix': Binary score matrix used for fitting.
 
-        Notes
-        -----
-        The score matrix is transposed to have shape [n_items, n_participants]
-        as required by the IRT fitting functions.
+        Notes:
+            The score matrix is transposed to have shape [n_items, n_participants]
+            as required by the IRT fitting functions.
         """
         if self.score_matrix is None:
             self.compute_score_matrix()
@@ -166,30 +153,23 @@ class BenchmarkAnalyzer:
     @staticmethod
     def analyze_extreme_items(difficulties: np.ndarray,
                               discriminations: np.ndarray,
-                              question_ids: List[str],
+                              question_ids: list[str],
                               threshold: float = 0.95) -> pd.DataFrame:
         """
         Identify items with extreme parameters.
 
-        Parameters
-        ----------
-        difficulties : np.ndarray
-            Array of item difficulties
-        discriminations : np.ndarray
-            Array of item discriminations
-        question_ids : List[str]
-            List of question IDs corresponding to the items
-        threshold : float, optional
-            Threshold for identifying extreme values (default: 0.95)
+        Args:
+            difficulties (np.ndarray): Array of item difficulties.
+            discriminations (np.ndarray): Array of item discriminations.
+            question_ids (list[str]): list of question IDs corresponding to the items.
+            threshold (float, optional): Threshold for identifying extreme values (default: 0.95).
 
-        Returns
-        -------
-        pd.DataFrame
-            DataFrame of items with extreme parameter values, containing:
-            - question_id: Question identifier
-            - difficulty: Item difficulty parameter
-            - discrimination: Item discrimination parameter
-            - is_extreme: Boolean indicating if the item has extreme parameters
+        Returns:
+            pd.DataFrame: DataFrame of items with extreme parameter values, containing:
+                - question_id: Question identifier.
+                - difficulty: Item difficulty parameter.
+                - discrimination: Item discrimination parameter.
+                - is_extreme: Boolean indicating if the item has extreme parameters.
         """
         # Create DataFrame with question IDs and parameters
         extreme_items = pd.DataFrame({

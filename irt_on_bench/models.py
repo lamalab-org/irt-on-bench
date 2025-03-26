@@ -9,36 +9,25 @@ Bayesian approaches with PyMC.
 import numpy as np
 import pymc as pm
 import arviz as az
-from typing import Dict, Any, Optional, Tuple
+from typing import Any
 import time
-import logging
-
-# Set up logging
-logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
-)
-logger = logging.getLogger(__name__)
+from loguru import logger
 
 
-def twopl_mml(response_matrix: np.ndarray) -> Dict[str, np.ndarray]:
+def twopl_mml(response_matrix: np.ndarray) -> dict[str, np.ndarray]:
     """
     Fit a 2-parameter logistic IRT model using marginal maximum likelihood.
 
     This is a simplified implementation that estimates parameters using
     an iterative approach based on logistic regression principles.
 
-    Parameters
-    ----------
-    response_matrix : np.ndarray
-        Binary response matrix with shape [n_items, n_participants]
+    Args:
+        response_matrix (np.ndarray): Binary response matrix with shape [n_items, n_participants].
 
-    Returns
-    -------
-    Dict[str, np.ndarray]
-        Dictionary containing:
-        - 'Difficulty': Item difficulty parameters
-        - 'Discrimination': Item discrimination parameters
+    Returns:
+        dict[str, np.ndarray]: dictionary containing:
+            - 'Difficulty': Item difficulty parameters.
+            - 'Discrimination': Item discrimination parameters.
     """
     logger.info("Starting 2PL model fitting with MML...")
     start_time = time.time()
@@ -69,7 +58,7 @@ def twopl_mml(response_matrix: np.ndarray) -> Dict[str, np.ndarray]:
             # Calculate gradient and Hessian for Newton-Raphson
             r = response_matrix[:, j] - probs
             grad = np.sum(discriminations * r)
-            hess = -np.sum(discriminations ** 2 * probs * (1 - probs))
+            hess = -np.sum(discriminations**2 * probs * (1 - probs))
 
             if hess != 0:  # Avoid division by zero
                 abilities[j] += grad / hess
@@ -126,31 +115,23 @@ def twopl_mml(response_matrix: np.ndarray) -> Dict[str, np.ndarray]:
         scale_factor = 2 / np.mean(discriminations)
         discriminations *= scale_factor
 
-    logger.info(f"2PL model fitting completed in {time.time() - start_time:.2f} seconds")
+    logger.info(
+        f"2PL model fitting completed in {time.time() - start_time:.2f} seconds"
+    )
 
-    return {
-        'Difficulty': difficulties,
-        'Discrimination': discriminations
-    }
+    return {"Difficulty": difficulties, "Discrimination": discriminations}
 
 
-def rasch_mml(response_matrix: np.ndarray) -> Dict[str, np.ndarray]:
+def rasch_mml(response_matrix: np.ndarray) -> dict[str, np.ndarray]:
     """
     Fit a Rasch (1-parameter logistic) IRT model using marginal maximum likelihood.
 
-    This is a simplified implementation that estimates parameters using
-    an iterative approach based on logistic regression principles.
+    Args:
+        response_matrix (np.ndarray): Binary response matrix with shape [n_items, n_participants].
 
-    Parameters
-    ----------
-    response_matrix : np.ndarray
-        Binary response matrix with shape [n_items, n_participants]
-
-    Returns
-    -------
-    Dict[str, np.ndarray]
-        Dictionary containing:
-        - 'Difficulty': Item difficulty parameters
+    Returns:
+        dict[str, np.ndarray]: dictionary containing:
+            - 'Difficulty': Item difficulty parameters.
     """
     logger.info("Starting Rasch model fitting with MML...")
     start_time = time.time()
@@ -218,35 +199,30 @@ def rasch_mml(response_matrix: np.ndarray) -> Dict[str, np.ndarray]:
             logger.info(f"Converged after {iteration + 1} iterations")
             break
 
-    logger.info(f"Rasch model fitting completed in {time.time() - start_time:.2f} seconds")
+    logger.info(
+        f"Rasch model fitting completed in {time.time() - start_time:.2f} seconds"
+    )
 
-    return {
-        'Difficulty': difficulties
-    }
+    return {"Difficulty": difficulties}
 
 
-def ability_mle(response_matrix: np.ndarray,
-                difficulties: np.ndarray,
-                discriminations: np.ndarray,
-                no_estimate: float = np.nan) -> np.ndarray:
+def ability_mle(
+    response_matrix: np.ndarray,
+    difficulties: np.ndarray,
+    discriminations: np.ndarray,
+    no_estimate: float = np.nan,
+) -> np.ndarray:
     """
     Estimate ability parameters using maximum likelihood estimation.
 
-    Parameters
-    ----------
-    response_matrix : np.ndarray
-        Binary response matrix with shape [n_items, n_participants]
-    difficulties : np.ndarray
-        Item difficulty parameters
-    discriminations : np.ndarray
-        Item discrimination parameters
-    no_estimate : float, optional
-        Value to use for participants with no estimated ability (default: np.nan)
 
-    Returns
-    -------
-    np.ndarray
-        Estimated ability parameters for each participant
+    Args:
+        response_matrix (np.ndarray): Binary response matrix with shape [n_items, n_participants].
+        difficulties (np.ndarray): Item difficulty parameters.
+        discriminations (np.ndarray): Item discrimination parameters.
+        no_estimate (float, optional): Value to use for participants with no estimated ability (default: np.nan).
+    Returns:
+        np.ndarray: Estimated ability parameters for each participant.
     """
     logger.info("Estimating abilities using MLE...")
     start_time = time.time()
@@ -282,7 +258,7 @@ def ability_mle(response_matrix: np.ndarray,
             gradient = np.sum(discriminations * (response_matrix[:, j] - probs))
 
             # Second derivative (Hessian) of log-likelihood
-            hessian = -np.sum(discriminations ** 2 * probs * (1 - probs))
+            hessian = -np.sum(discriminations**2 * probs * (1 - probs))
 
             # Update ability estimate
             if hessian != 0:  # Avoid division by zero
@@ -294,39 +270,34 @@ def ability_mle(response_matrix: np.ndarray,
 
         abilities[j] = theta
 
-    logger.info(f"Ability estimation completed in {time.time() - start_time:.2f} seconds")
+    logger.info(
+        f"Ability estimation completed in {time.time() - start_time:.2f} seconds"
+    )
 
     return abilities
 
 
-def fit_2pl_pymc(response_matrix: np.ndarray,
-                 n_samples: int = 2000,
-                 tune: int = 2000,
-                 chains: int = 4,
-                 target_accept: float = 0.8,
-                 cores: int = 1) -> Any:
+def fit_2pl_pymc(
+    response_matrix: np.ndarray,
+    n_samples: int = 2000,
+    tune: int = 2000,
+    chains: int = 4,
+    target_accept: float = 0.8,
+    cores: int = 1,
+) -> Any:
     """
     Fit a 2-parameter logistic IRT model using PyMC.
 
-    Parameters
-    ----------
-    response_matrix : np.ndarray
-        Binary response matrix with shape [n_participants, n_items]
-    n_samples : int, optional
-        Number of samples to draw (default: 2000)
-    tune : int, optional
-        Number of tuning samples (default: 2000)
-    chains : int, optional
-        Number of chains to run (default: 4)
-    target_accept : float, optional
-        Target acceptance rate (default: 0.8)
-    cores : int, optional
-        Number of cores to use (default: 1)
+    Args:
+        response_matrix (np.ndarray): Binary response matrix with shape [n_participants, n_items].
+        n_samples (int, optional): Number of samples to draw (default: 2000).
+        tune (int, optional): Number of tuning samples (default: 2000).
+        chains (int, optional): Number of chains to run (default: 4).
+        target_accept (float, optional): Target acceptance rate (default: 0.8).
+        cores (int, optional): Number of cores to use (default: 1).
 
-    Returns
-    -------
-    Any
-        PyMC trace object containing the posterior samples
+    Returns:
+        Any: PyMC trace object containing the posterior samples.
     """
     logger.info(f"Starting PyMC 2PL model fitting with {n_samples} samples...")
     start_time = time.time()
@@ -340,25 +311,16 @@ def fit_2pl_pymc(response_matrix: np.ndarray,
 
     with pm.Model() as irt_2pl:
         # Prior for abilities (participants)
-        abilities = pm.Normal('abilities',
-                              mu=0,
-                              sigma=1,
-                              shape=n_participants)
+        abilities = pm.Normal("abilities", mu=0, sigma=1, shape=n_participants)
 
         # Prior for discriminations (items)
         # Using TruncatedNormal to ensure positive discriminations
-        discriminations = pm.TruncatedNormal('discriminations',
-                                             mu=1.0,
-                                             sigma=0.5,
-                                             lower=0.25,
-                                             upper=4.0,
-                                             shape=n_items)
+        discriminations = pm.TruncatedNormal(
+            "discriminations", mu=1.0, sigma=0.5, lower=0.25, upper=4.0, shape=n_items
+        )
 
         # Prior for difficulties (items)
-        difficulties = pm.Normal('difficulties',
-                                 mu=0,
-                                 sigma=1.5,
-                                 shape=n_items)
+        difficulties = pm.Normal("difficulties", mu=0, sigma=1.5, shape=n_items)
 
         # Calculate logits using vectorized operations
         # (we reshape for broadcasting)
@@ -370,19 +332,19 @@ def fit_2pl_pymc(response_matrix: np.ndarray,
         logits = a_expanded * (theta_expanded - b_expanded)
 
         # Likelihood
-        pm.Bernoulli('responses',
-                     logit_p=logits,
-                     observed=response_matrix)
+        pm.Bernoulli("responses", logit_p=logits, observed=response_matrix)
 
         # Sample from the posterior
         logger.info("Starting MCMC sampling...")
-        trace = pm.sample(n_samples,
-                          tune=tune,
-                          chains=chains,
-                          target_accept=target_accept,
-                          cores=cores,
-                          random_seed=42,
-                          return_inferencedata=True)
+        trace = pm.sample(
+            n_samples,
+            tune=tune,
+            chains=chains,
+            target_accept=target_accept,
+            cores=cores,
+            random_seed=42,
+            return_inferencedata=True,
+        )
 
     elapsed_time = time.time() - start_time
     logger.info(f"PyMC 2PL model fitting completed in {elapsed_time:.2f} seconds")
@@ -390,23 +352,19 @@ def fit_2pl_pymc(response_matrix: np.ndarray,
     return trace
 
 
-def check_model_diagnostics(trace: Any) -> Dict[str, Any]:
+def check_model_diagnostics(trace: Any) -> dict[str, Any]:
     """
     Comprehensive model diagnostics for PyMC traces.
 
-    Parameters
-    ----------
-    trace : Any
-        PyMC trace object to diagnose
+    Args:
+        trace (Any): PyMC trace object to diagnose.
 
-    Returns
-    -------
-    Dict[str, Any]
-        Dictionary containing diagnostics information:
-        - 'r_hat': Gelman-Rubin statistics
-        - 'ess': Effective sample size
-        - 'mcse': Monte Carlo standard error
-        - 'divergences': Number of divergences
+    Returns:
+        dict[str, Any]: dictionary containing diagnostics information:
+            - 'r_hat': Gelman-Rubin statistics.
+            - 'ess': Effective sample size.
+            - 'mcse': Monte Carlo standard error.
+            - 'divergences': Number of divergences.
     """
     logger.info("Checking model diagnostics...")
 
@@ -415,19 +373,19 @@ def check_model_diagnostics(trace: Any) -> Dict[str, Any]:
     ess = az.ess(trace)
     mcse = az.mcse(trace)
     summary = az.summary(trace)
-    divergences = summary['diverging'].sum() if 'diverging' in summary.columns else 0
+    divergences = summary["diverging"].sum() if "diverging" in summary.columns else 0
 
     # Extrahiere r_hat Werte und vermeide Methodenaufruf
     # Angepasster Code für neuere ArviZ-Versionen
     try:
         # Versuche, den maximalen r_hat-Wert auf verschiedene Weisen zu extrahieren
-        if hasattr(r_hat, 'values') and not callable(r_hat.values):
+        if hasattr(r_hat, "values") and not callable(r_hat.values):
             max_r_hat = float(np.max(r_hat.values))
-        elif hasattr(r_hat, 'to_array'):
+        elif hasattr(r_hat, "to_array"):
             max_r_hat = float(np.max(r_hat.to_array()))
         else:
             # Fallback: Extrahiere Werte aus dem Summary
-            r_hat_vals = [val for key, val in summary.items() if key.endswith('r_hat')]
+            r_hat_vals = [val for key, val in summary.items() if key.endswith("r_hat")]
             max_r_hat = float(np.max(r_hat_vals)) if r_hat_vals else 1.0
     except Exception as e:
         logger.warning(f"Could not extract r_hat values: {e}")
@@ -435,13 +393,13 @@ def check_model_diagnostics(trace: Any) -> Dict[str, Any]:
 
     # Ähnlich für ESS
     try:
-        if hasattr(ess, 'values') and not callable(ess.values):
+        if hasattr(ess, "values") and not callable(ess.values):
             min_ess = float(np.min(ess.values))
-        elif hasattr(ess, 'to_array'):
+        elif hasattr(ess, "to_array"):
             min_ess = float(np.min(ess.to_array()))
         else:
             # Fallback
-            ess_vals = [val for key, val in summary.items() if key.endswith('ess')]
+            ess_vals = [val for key, val in summary.items() if key.endswith("ess")]
             min_ess = float(np.min(ess_vals)) if ess_vals else 500.0
     except Exception as e:
         logger.warning(f"Could not extract ESS values: {e}")
@@ -456,97 +414,98 @@ def check_model_diagnostics(trace: Any) -> Dict[str, Any]:
     if has_issues:
         logger.warning("Potential convergence issues detected!")
         if max_r_hat > 1.1:
-            logger.warning(f"R-hat values > 1.1 indicate lack of convergence")
+            logger.warning("R-hat values > 1.1 indicate lack of convergence")
         if min_ess < 400:
-            logger.warning(f"Low effective sample size could indicate inefficient sampling")
+            logger.warning(
+                "Low effective sample size could indicate inefficient sampling"
+            )
         if divergences > 0:
-            logger.warning(f"Divergences indicate problems with the model geometry")
+            logger.warning("Divergences indicate problems with the model geometry")
     else:
         logger.info("No major convergence issues detected")
 
     return {
-        'r_hat': r_hat,
-        'ess': ess,
-        'mcse': mcse,
-        'divergences': divergences,
-        'has_issues': has_issues
+        "r_hat": r_hat,
+        "ess": ess,
+        "mcse": mcse,
+        "divergences": divergences,
+        "has_issues": has_issues,
     }
 
 
-def extract_parameters(trace: Any) -> Dict[str, np.ndarray]:
+def extract_parameters(trace: Any) -> dict[str, np.ndarray]:
     """
     Extract point estimates of parameters from a PyMC trace.
 
-    Parameters
-    ----------
-    trace : Any
-        PyMC trace object
+    Args:
+            trace (Any): PyMC trace object.
 
-    Returns
-    -------
-    Dict[str, np.ndarray]
-        Dictionary containing:
-        - 'abilities': Ability parameter point estimates
-        - 'difficulties': Difficulty parameter point estimates
-        - 'discriminations': Discrimination parameter point estimates
+        Returns:
+            dict[str, np.ndarray]: dictionary containing:
+                - 'abilities' (np.ndarray): Ability parameter point estimates.
+                - 'difficulties' (np.ndarray): Difficulty parameter point estimates.
+                - 'discriminations' (np.ndarray): Discrimination parameter point estimates.
     """
     # Extract posterior means as point estimates
-    abilities = trace.posterior['abilities'].mean(dim=['chain', 'draw']).values
-    difficulties = trace.posterior['difficulties'].mean(dim=['chain', 'draw']).values
-    discriminations = trace.posterior['discriminations'].mean(dim=['chain', 'draw']).values
+    abilities = trace.posterior["abilities"].mean(dim=["chain", "draw"]).values
+    difficulties = trace.posterior["difficulties"].mean(dim=["chain", "draw"]).values
+    discriminations = (
+        trace.posterior["discriminations"].mean(dim=["chain", "draw"]).values
+    )
 
     return {
-        'abilities': abilities,
-        'difficulties': difficulties,
-        'discriminations': discriminations
+        "abilities": abilities,
+        "difficulties": difficulties,
+        "discriminations": discriminations,
     }
 
 
-def extract_parameter_uncertainties(trace: Any,
-                                    hdi_prob: float = 0.95) -> Dict[str, Dict[str, np.ndarray]]:
+def extract_parameter_uncertainties(
+    trace: Any, hdi_prob: float = 0.95
+) -> dict[str, dict[str, np.ndarray]]:
     """
     Extract uncertainty estimates for parameters from a PyMC trace.
 
-    Parameters
-    ----------
-    trace : Any
-        PyMC trace object
-    hdi_prob : float, optional
-        Probability mass for highest density interval (default: 0.95)
+    Args:
+        trace (Any): PyMC trace object.
+        hdi_prob (float, optional): Probability mass for highest density interval (default: 0.95).
 
-    Returns
-    -------
-    Dict[str, Dict[str, np.ndarray]]
-        Nested dictionary containing:
-        - Parameter type (abilities, difficulties, discriminations)
-          - 'std': Standard deviation
-          - 'hdi_lower': Lower bound of HDI
-          - 'hdi_upper': Upper bound of HDI
+    Returns:
+        dict[str, dict[str, np.ndarray]]: Nested dictionary containing:
+            - Parameter type (abilities, difficulties, discriminations):
+                - 'std': Standard deviation.
+                - 'hdi_lower': Lower bound of HDI.
+                - 'hdi_upper': Upper bound of HDI.
+            hdi_prob: float = 0.95) -> dict[str, dict[str, np.ndarray]]:
     """
     # Calculate standard deviations
-    abilities_std = trace.posterior['abilities'].std(dim=['chain', 'draw']).values
-    difficulties_std = trace.posterior['difficulties'].std(dim=['chain', 'draw']).values
-    discriminations_std = trace.posterior['discriminations'].std(dim=['chain', 'draw']).values
+    abilities_std = trace.posterior["abilities"].std(dim=["chain", "draw"]).values
+    difficulties_std = trace.posterior["difficulties"].std(dim=["chain", "draw"]).values
+    discriminations_std = (
+        trace.posterior["discriminations"].std(dim=["chain", "draw"]).values
+    )
 
     # Calculate HDIs
-    abilities_hdi = az.hdi(trace, var_names=['abilities'], hdi_prob=hdi_prob)
-    difficulties_hdi = az.hdi(trace, var_names=['difficulties'], hdi_prob=hdi_prob)
-    discriminations_hdi = az.hdi(trace, var_names=['discriminations'], hdi_prob=hdi_prob)
+    abilities_hdi = az.hdi(trace, var_names=["abilities"], hdi_prob=hdi_prob)
+    difficulties_hdi = az.hdi(trace, var_names=["difficulties"], hdi_prob=hdi_prob)
+    discriminations_hdi = az.hdi(
+        trace, var_names=["discriminations"], hdi_prob=hdi_prob
+    )
 
     return {
-        'abilities': {
-            'std': abilities_std,
-            'hdi_lower': abilities_hdi.abilities.sel(hdi='lower').values,
-            'hdi_upper': abilities_hdi.abilities.sel(hdi='higher').values
+        "abilities": {
+            "std": abilities_std,
+            "hdi_lower": abilities_hdi.abilities.sel(hdi="lower").values,
+            "hdi_upper": abilities_hdi.abilities.sel(hdi="higher").values,
         },
-        'difficulties': {
-            'std': difficulties_std,
-            'hdi_lower': difficulties_hdi.difficulties.sel(hdi='lower').values,
-            'hdi_upper': difficulties_hdi.difficulties.sel(hdi='higher').values
+        "difficulties": {
+            "std": difficulties_std,
+            "hdi_lower": difficulties_hdi.difficulties.sel(hdi="lower").values,
+            "hdi_upper": difficulties_hdi.difficulties.sel(hdi="higher").values,
         },
-        'discriminations': {
-            'std': discriminations_std,
-            'hdi_lower': discriminations_hdi.discriminations.sel(hdi='lower').values,
-            'hdi_upper': discriminations_hdi.discriminations.sel(hdi='higher').values
-        }
+        "discriminations": {
+            "std": discriminations_std,
+            "hdi_lower": discriminations_hdi.discriminations.sel(hdi="lower").values,
+            "hdi_upper": discriminations_hdi.discriminations.sel(hdi="higher").values,
+        },
     }
