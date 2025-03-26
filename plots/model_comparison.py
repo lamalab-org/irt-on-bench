@@ -22,7 +22,7 @@ import seaborn as sns
 import arviz as az
 from scipy.constants import golden
 
-from irt_on_bench.data_loader import load_model_scores, load_trace
+from irt_on_bench.data import load_model_scores, load_trace
 
 # Plotting constants
 ONE_COL_WIDTH_INCH = 3.25

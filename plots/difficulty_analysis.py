@@ -24,7 +24,7 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 from scipy.constants import golden
 
-from irt_on_bench.data_loader import load_trace
+from irt_on_bench.data import load_trace
 
 # Plotting constants
 ONE_COL_WIDTH_INCH = 3.25

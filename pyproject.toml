@@ -9,7 +9,8 @@ description = "Item Response Theory analysis for language model benchmarks"
 readme = "README.md"
 authors = [
     {name = "Mara Schilling-Wilehlmi", email = "mara.wilhelmi@uni-jena.de"},
-    {name = "Nawaf Alampara", email = ""}
+    {name = "Nawaf Alampara", email = "Nawaf.alampara@uni-jena.de"},
+    {name = "Kevin M. Jablonka", emial = "kevin.jablonka@uni-jena.de"}
 ]
 license = {text = "MIT"}
 classifiers = [

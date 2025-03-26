@@ -139,7 +139,7 @@ If you use this software in your research, please cite:
 
 ```
 @software{irt-on-bench,
-  author = {Schilling-Wilhelmi, Mara and Alampara, Nawaf},
+  author = {Schilling-Wilhelmi, Mara and Alampara, Nawaf and Jablonka, Kevin M.},
   title = {IRT-on-Bench: Item Response Theory for Language Model Benchmarks},
   year = {2025},
   url = {https://github.com/lamalab-org/irt-on-bench}
