@@ -33,6 +33,8 @@ dependencies = [
     "tqdm>=4.60.0",
 ]
 
+[project.scripts]
+irt-on-bench = "irt_on_bench.cli:main"
 
 [project.optional-dependencies]
 dev = [
@@ -45,5 +47,9 @@ dev = [
 [project.urls]
 "Homepage" = "https://github.com/lamalab-org/irt-on-bench"
 
-[project.scripts]
-irt-analyze = "irt_on_bench.analyzer:main"
+
+[tool.setuptools]
+package-dir = {"" = "src"}
+
+[tool.setuptools.packages.find]
+where = ["src"]

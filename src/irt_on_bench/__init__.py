@@ -11,3 +11,5 @@ This package provides tools for:
 - Analyzing model and item parameters
 - Visualizing results
 """
+
+__version__ = "0.1.0"

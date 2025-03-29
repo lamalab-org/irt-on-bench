@@ -34,48 +34,43 @@ pip install -e .
 You can run a full IRT analysis on your benchmark data using the command-line interface:
 
 ```bash
-# Basic usage with classical IRT
-irt-analyze --data_path=your_data.pkl --output_path=results/
+# Run basic analysis with default parameters
+irt-on-bench --data_path=../data/filtered_model_score_dict.pkl --output_path=../results/
 
-# Using Bayesian IRT with PyMC
-irt-analyze --data_path=your_data.pkl --output_path=results/ --pymc
+# Run with classical IRT methods instead of PyMC
+irt-on-bench --data_path=../data/filtered_model_score_dict.pkl --pymc=False
+
+# with all option
+irt-on-bench \
+  --data_path=./data/filtered_model_score_dict.pkl \
+  --output_path=./results/ \
+  --model=2pl \
+  --pymc=true \
+  --n_samples=2000 \
+  --chains=4 \
+  --cores=2 \
+  --force=true
+
 ```
 
 ### Python API
 
 ```python
-from irt_on_bench.data import load_model_scores, create_binary_matrix
-from irt_on_bench.analyzer import BenchmarkAnalyzer
+import pandas as pd
 from irt_on_bench.metadata import BinaryQuestionMetadata
 from irt_on_bench.models import fit_2pl_pymc
+from irt_on_bench.cli import setup_analyzer_from_scores
 
-# Load model scores
-model_scores = load_model_scores("your_data.pkl")
 
-# Create binary matrix
-binary_array, binary_df, models = create_binary_matrix(model_scores)
-
-# Using the BenchmarkAnalyzer for classical IRT
-analyzer = BenchmarkAnalyzer()
+analyzer, models = setup_analyzer_from_scores("your_data.pkl", metric_name="all_correct")
 
 # Create question metadata
 for i in range(binary_array.shape[0]):
     analyzer.add_question_metadata(BinaryQuestionMetadata(f"q{i}"))
 
-# Add model results
-for i, model in enumerate(models):
-    model_df = pd.DataFrame({
-        'all_correct_': binary_array[:, i]
-    }, index=[f"q{j}" for j in range(binary_array.shape[0])])
-    analyzer.add_model_results(model, model_df)
-
 # Fit IRT model
 irt_results = analyzer.fit_irt(model='2pl')
-
-# Extract parameters
-difficulties = irt_results['difficulties']
-discriminations = irt_results['discriminations']
-abilities = irt_results['abilities']
+print(irt_results['difficulties'],irt_results['discriminations'],irt_results['abilities'])
 
 # Alternatively, use Bayesian IRT with PyMC
 trace = fit_2pl_pymc(binary_array.T)
@@ -112,11 +107,11 @@ The package expects model scores in a specific format:
 {
   "overall": {
     "model_name_1": {
-      "all_correct_": pandas.Series,
+      metric_name: pandas.Series,
       ...
     },
     "model_name_2": {
-      "all_correct_": pandas.Series,
+      metric_name: pandas.Series,
       ...
     },
     ...

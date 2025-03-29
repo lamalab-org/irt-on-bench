@@ -292,7 +292,7 @@ class IRTAnalysis:
             discriminations (np.ndarray): Item discriminations
             abilities (np.ndarray): Model abilities
             abilities_std (np.ndarray): Standard errors of abilities
-            models (list): List of model names
+            models (list): list of model names
         """
         # Analyze extreme items
         logger.info("Analyzing extreme items...")
@@ -380,6 +380,57 @@ class IRTAnalysis:
         logger.info(
             f"Saved item characteristic curves to {os.path.join(output_path, 'item_characteristic_curves.png')}"
         )
+
+def setup_analyzer_from_scores(
+    scores_path: str, 
+    metric_name: str,
+    question_ids: list[str] | None = None,
+    metadata_dict: dict[str, dict] | None = None
+) -> tuple[BenchmarkAnalyzer, list[str]]:
+    """
+    Creates and sets up a BenchmarkAnalyzer from model scores file.
+    
+    Args:
+        scores_path: Path to the scores pickle file
+        question_ids: Optional list of question IDs. If None, will generate IDs like "q0", "q1", etc.
+        metadata_dict: Optional dictionary of question metadata {question_id: {metadata_key: value}}
+    
+    Returns:
+        Tuple of (configured analyzer, list of model names)
+    """
+    # Load model scores
+    model_scores = load_model_scores(scores_path)
+    
+    # Create binary matrix
+    binary_array, binary_df, models = create_binary_matrix(model_scores)
+    
+    # Initialize analyzer
+    analyzer = BenchmarkAnalyzer()
+    
+    # Generate question IDs if not provided
+    if question_ids is None:
+        question_ids = [f"q{i}" for i in range(binary_array.shape[0])]
+    
+    # Add question metadata
+    for i, q_id in enumerate(question_ids):
+        # Create metadata object with basic ID
+        metadata = BinaryQuestionMetadata(q_id)
+        
+        # Add any additional metadata if provided
+        if metadata_dict and q_id in metadata_dict:
+            for key, value in metadata_dict[q_id].items():
+                setattr(metadata, key, value)
+        
+        analyzer.add_question_metadata(metadata)
+    
+    # Add model results
+    for i, model in enumerate(models):
+        model_df = pd.DataFrame({
+            metric_name : binary_array[:, i]
+        }, index=question_ids)
+        analyzer.add_model_results(model, model_df)
+    
+    return analyzer, models
 
 
 def main():

@@ -187,3 +187,5 @@ class BenchmarkAnalyzer:
 
         # Return only the extreme items
         return extreme_items[extreme_items['is_extreme']]
+
+
