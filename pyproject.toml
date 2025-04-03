@@ -1,23 +1,55 @@
 [build-system]
-requires = ["setuptools>=64.0"]
+requires = ["setuptools>=42", "wheel"]
 build-backend = "setuptools.build_meta"
 
-
-name = "irt"
+[project]
+name = "irt-on-bench"
 version = "0.1.0"
-description = ""
-authors = [{ name = "ChemBench authors", email = "chembench@lamalab.org" }]
-dependencies = [
-   "pandas",
-    "numpy",
-    "pymc",
-    "arviz",
-    "pickle",
-    "nbdev",
-    "jupyterlab",
-    "jupyterlab-quarto",
-
+description = "Item Response Theory analysis for language model benchmarks"
+readme = "README.md"
+authors = [
+    {name = "Mara Schilling-Wilehlmi", email = "mara.wilhelmi@uni-jena.de"},
+    {name = "Nawaf Alampara", email = "Nawaf.alampara@uni-jena.de"},
+    {name = "Kevin M. Jablonka", email = "kevin.jablonka@uni-jena.de"}
+]
+license = {text = "MIT"}
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
 ]
 requires-python = ">=3.10"
-readme = "README.md"
-license = { text = "MIT" }
+dependencies = [
+    "numpy>=1.20.0,<2.0.0",
+    "pandas>=1.3.0",
+    "matplotlib>=3.4.0",
+    "pymc>=5.0.0,<6.0.0",
+    "arviz>=0.11.0",
+    "seaborn>=0.11.0",
+    "scipy>=1.7.0",
+    "loguru>=0.5.0",
+    "fire>=0.4.0",
+    "xarray>=2022.3.0",
+    "tqdm>=4.60.0",
+]
+
+[project.scripts]
+irt-on-bench = "irt_on_bench.cli:main"
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=6.0",
+    "black",
+    "isort",
+    "mypy",
+]
+
+[project.urls]
+"Homepage" = "https://github.com/lamalab-org/irt-on-bench"
+
+
+[tool.setuptools]
+package-dir = {"" = "src"}
+
+[tool.setuptools.packages.find]
+where = ["src"]
