@@ -1,9 +1,0 @@
-project:
-  output-dir: _docs
-
-website:
-  title: "irt-on-bench"
-  site-url: "https://lamalab-org.github.io/irt-on-bench"
-  description: "Systematic analysis of (LLM) benchmarks"
-  repo-branch: main
-  repo-url: "https://github.com/lamalab-org/irt-on-bench"
